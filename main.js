@@ -1,17 +1,15 @@
 
 import axios from "axios";
 import http from "http";
-import { string, number } from 'yup';
+import { string, number,object } from 'yup';
 
 
-const Scheme=
-{
-  title: string().required(),
-  price: number().required().positive(),
-  description: string(),
-  categoryId: number().required().positive().integer(),
-  
-}
+const Scheme = object({
+  title: string("this should be a string").required(),
+  price: number("this should be anumber").positive().required(),
+  description: string("this should be a string"),
+  categoryId: number("this should be anumber").positive().required().integer(),
+})
 
 const getEgpCurrency = async (curr) => {
    let currencies = await fetch("https://openexchangerates.org/api/latest.json?app_id=4fb54a06490f4d09a8bf0049e7b9d7eb");
@@ -92,9 +90,6 @@ const getProducts=async function(curr){
     let url=req.url;
     let curr=req.url.split('=').at(-1).toUpperCase();
     let url2=req.url.split('=').at(-2);
-    console.log(url2);
-    console.log(url);
-    
     if(method==='GET')
     {
       if(url==='/')
@@ -117,7 +112,6 @@ const getProducts=async function(curr){
     
     else if(method==='POST')
     {
-      console.log(",,,,,")
       let chuncks = [];
       req.on('data',(chunk)=>{
         chuncks.push(chunk);
@@ -125,15 +119,15 @@ const getProducts=async function(curr){
       req.on('end',async ()=>{
         try
         {
-          let Product = Scheme.validateSync(JSON.parse(chuncks.toString()),
+          let Product = Scheme.validateSync(JSON.parse(Buffer.concat(chuncks).toString()),
            {
             strict: true,
            });
           let response =await axios.post("https://api.escuelajs.co/api/v1/products/", Product, {
-          headers: { 'Content-Type': 'application/json' }
+          headers: {'Content-Type': 'application/json'}
           });
           res.setHeader("content-type", "application/json");
-          res.writeHead(200);
+          res.writeHead(201,"Status Ok");
           res.write(JSON.stringify(response.data));
           res.end();
 
